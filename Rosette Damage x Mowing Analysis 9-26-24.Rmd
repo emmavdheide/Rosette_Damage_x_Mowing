@@ -1,0 +1,422 @@
+---
+title: "Rosette Damage x Mowing Data Analysis"
+author: "Emma van der Heide"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Data Analysis for Rosette Damage x Mowing Analysis
+
+```{r load data and packages}
+#set working directory
+setwd("~/Grad School/Penn State/Project Information/Thistle Nursery for Summer 2024/Rosette_Damage_x_Mowing")
+
+#load data
+dat <- read.csv("ManuscriptData1.csv")
+
+#make data into factors
+dat$Block <- as.factor(dat$Block)
+dat$SubBlock <- as.factor(dat$SubBlock)
+dat$Treatment <- as.factor(dat$Treatment)
+dat$RosDam <- as.factor(dat$RosDam)
+dat$EarlyMow <- as.factor(dat$EarlyMow)
+dat$LateMow <- as.factor(dat$LateMow)
+dat$SurviveJuly5 <- as.factor(dat$SurviveJuly5)
+
+#load required packages
+library(lme4)
+library(glmmTMB)
+library(DHARMa)
+library(emmeans)
+library(ggplot2)
+library(dplyr)
+```
+
+#Analyze Maximum Number of Capitula
+
+Maximum number of capitula is the max number of capitula + buds that were ever present on a plant, after the last mowing treatment happened on (WHICH DATE?)
+This is because some capitula drop off/blow away as they senesce, meaning that the final assessment of number of capitula may be inaccurate.
+
+```{r Max. Cap.}
+#fit model and summarize
+fit1 <- glmmTMB(MaxCapitula ~ Treatment + LLLMay2 + (1|Block), data = dat, family = "poisson") #poisson error distribution chosen because this is count data
+summary(fit1)
+
+#check assumptions by examining residuals
+sim.fit1 <- simulateResiduals(fit1)
+plot(sim.fit1) #Visual inspection: this looks great
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmMaxCap <- emmeans(fit1, specs=pairwise~Treatment, type="response")
+emmMaxCap
+
+#Visualize results
+#Put emmeans output into a data frame
+MaxCap<-as.data.frame(emmMaxCap[1])
+#make a plot
+MaxCapPlot<-ggplot(MaxCap,aes(y=emmeans.rate, x=emmeans.Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1))+
+  labs(x="Treatment", y="Capitula Production")+
+  ylim(0, 12)+
+  ggtitle("Maximum Number of Capitula Present on Plant")+
+  geom_errorbar(aes(x=emmeans.Treatment, ymin=emmeans.asymp.LCL, ymax=emmeans.asymp.UCL))
+MaxCapPlot
+```
+
+#Maximum capitula conclusions:
+
+#Height at Flowering
+```{r Height at Flowering}
+#fit model and summarize results
+fit2 <- glmmTMB(HeightatFlowering ~ Treatment + (1|Block) + LLLMay2, data = dat, family = "gaussian")
+summary(fit2)
+
+#check residuals
+sim.fit2<-simulateResiduals(fit2)
+plot(sim.fit2) #visual inspection: looks great
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmHtFl <- emmeans(fit2, specs=pairwise~Treatment, type="response")
+emmHtFl
+
+#Visualize results
+#Put emmeans output into a data frame
+HtFl<-as.data.frame(emmHtFl[1])
+#make a plot
+HtFlPlot<-ggplot(HtFl,aes(y=emmeans.emmean, x=emmeans.Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1))+
+  labs(x="Treatment", y="Height at Flowering")+
+  ylim(0, 120)+
+  ggtitle("Height at Flowering")+
+  geom_errorbar(aes(x=emmeans.Treatment, ymin=emmeans.lower.CL, ymax=emmeans.upper.CL))
+HtFlPlot
+```
+
+#Height at Flowering Conclusions:
+
+#Survival
+
+Analysis of survivorship on July 5th, X weeks after the last mowing treatment. 
+In future, could look at how survivorship decreases through time (the full curve). See Trevor's seed dispersal paper, code is in Emma's downloads folder.
+
+```{r Survival}
+#using the package survival
+fit3 <- glmmTMB(SurviveJuly5~Treatment + (1|Block), data=dat, family="binomial")
+summary(fit3)
+
+#check residuals
+sim.fit3<-simulateResiduals(fit3)
+plot(sim.fit3) #visual inspection: looks great
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmSurv <- emmeans(fit3, specs=pairwise~Treatment, type="response")
+emmSurv
+
+#Visualize results
+#Put emmeans output into a data frame
+Surv<-as.data.frame(emmSurv[1])
+#make a plot
+SurvPlot<-ggplot(Surv,aes(y=emmeans.prob, x=emmeans.Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1))+
+  labs(x="Treatment", y="Survivorship Propability")+
+  ylim(0, 1)+
+  ggtitle("Probability of Survival on July 5th")+
+  geom_errorbar(aes(x=emmeans.Treatment, ymin=emmeans.asymp.LCL, ymax=emmeans.asymp.UCL))
+SurvPlot
+```
+
+#Survival analysis, based on Trevor's paper
+
+```{r}
+#Load individual suvival data
+surv_dat<-read.csv("SurvDataIndividual.csv")
+
+#Make row, group, column, and treatment into factors
+surv_dat$Row<-as.factor(surv_dat$Row)
+surv_dat$Group<-as.factor(surv_dat$Group)
+surv_dat$Plant<-as.factor(surv_dat$Plant)
+surv_dat$Treatment<-as.factor(surv_dat$Treatment)
+
+# Functions to take average number (and SD and SEM) of plants remaining at a given time
+na.mean <- function(x){
+  mean(x)}
+na.sd <- function(x){
+  sd(x)}
+na.sem <- function(x){
+  na.sd(x)/sqrt(length(x))}
+
+# Function to apply above functions to each treatment group
+time.means <- function(df){ #function take 1 argument, a dataframe
+  #df <- select(df, -Block) #select data frame, remove column block (I don't think we need this)
+  df_means <- apply(df[, 5:ncol(df)], MARGIN = 2, FUN = na.mean) #the next 3 lines calculate stats for each column from column 5 to the end, margin=2 tells function to apply to columns (=1 if rows)
+  df_sd <- apply(df[, 5:ncol(df)], MARGIN = 2, FUN = na.sd)
+  df_sem <- apply(df[, 5:ncol(df)], MARGIN = 2, FUN = na.sem)
+  df_new <- data.frame(cbind(c(seq(0, 13, by = 1)), df_means, df_sem)) #create new dataframe with time column with sequence of numbers 0-13 by 1 (because we have 14 time points), also calculated means and standard errors
+  names(df_new) <- c("Time", "Mean", "SEM") #name the columns in df_new
+  return(df_new)} #return df_new
+
+# Function to evaluate whether two survival curves are different
+# Use 2-sided K-S test, with code adapted from ks.test function
+# Set function environment to "stats" for calling internally-compiled code
+time.ks <- function(df1, df2){ #function that takes two dataframes as input
+  #df1 <- select(df1, -Block) #in each df, remove column block (I don't think we need this)
+  #df2 <- select(df2, -Block)
+  df_means1 <- apply(df1[, 5:ncol(df1)], MARGIN = 2, FUN = na.mean) #calculate means of each column from column 5 to the end
+  df_means2 <- apply(df2[, 5:ncol(df2)], MARGIN = 2, FUN = na.mean)
+  D <- max(abs((1 - df_means1) - (1 - df_means2))) #calculates the maximum absolute difference between the transformed means from both data frames. The transformation involves subtracting each mean from 1 (originally divided df_means/25 because 25 seeds) and then taking the absolute value. This quantifies the largest deviation between the two data sets
+  n <- length(5:ncol(df1)) #counts the number of columns (from the 5th to the last) in df1
+  pkstwo <- function(x, tol = 1e-06, D = D){ #function for K-S test that takes argument, defines tolerance level, and maximum difference
+    p <- rep(0, length(x)) #initializes a vector of zeros with the same length as x
+    i <- which(x > 0) #finds the indices where x is greater than 0.
+    if(length(i)){ #if positive values in x, calculate p-values for those indices
+      p[i] <- .Call(C_pKS2, p = x[i], tol)}
+    return(p)} #return p values
+  pval <- min(1, max(0, 1 - pkstwo(sqrt(n)*D))) #p-value for the test
+  return(pval)}
+environment(time.ks) <- asNamespace("stats") # sets the environment of the time.ks function to be within the stats namespace, which can be useful for function visibility and scoping.
+
+#functions to plot survival curves included in Trevor's setup code
+
+#sort data into 8 different treatment groups for plotting
+surv_dat_control<-subset(surv_dat, Treatment =="1. Control")
+surv_dat_RD<-subset(surv_dat, Treatment=="2. Rosette Damage")
+surv_dat_RDEM<-subset(surv_dat, Treatment=="3. Rosette Damage/Early Mow")
+surv_dat_RDLM<-subset(surv_dat, Treatment=="4. Rosette Damage/Late Mow")
+surv_dat_RDEMLM<-subset(surv_dat, Treatment=="5. Rosette Damage/Early Mow/Late Mow")
+surv_dat_EM<-subset(surv_dat, Treatment=="6. Early Mow")
+surv_dat_EMLM<-subset(surv_dat, Treatment=="7. Early Mow/Late Mow")
+surv_dat_LM<-subset(surv_dat, Treatment=="8. Late Mow")
+
+
+##### Convert data to format suitable for survival model functions ----------------------------------------
+
+# Construct concise representation of original dataset
+# ToD indicates time of death
+# Cens indicates censor status (1 = dead, 0 = censored and survived until end)
+for(i in 1:nrow(surv_dat)){ #initialize the main data frame, iterates over every row of "surv_dat" ("surv_dat" formerly "Data")
+  if(i == 1){
+    df_main <- matrix(ncol = 7, nrow = 0)} #creates an empty matrix with 7 columns - NOT SURE WHY 7?????
+  row_sub <- surv_dat[i, ] #The current row from Data is stored in row_sub
+  for(j in 7:ncol(surv_dat)){ #nested loop that goes through columns starting with column 7
+    if(j == 7){
+      prevNum <- 1 #where the data starts/maximum number of seeds, formerly 25
+      df_sub <- matrix(ncol = 7, nrow = 0)} #holds temporary results
+    curNum <- as.numeric(row_sub[j])
+    if(curNum < prevNum){ #If the current number (from row_sub) is less than prevNum, it creates new rows for df_sub
+      df_sub <- rbind(df_sub, matrix(c(as.character(row_sub[1:5])), #str_remove(names(Data)[j], "t_"), 1), #It uses rbind() to add rows indicating that the subject died (Cens = 1) at a particular time point. The str_remove() function removes the prefix t_ from the column names to get a more readable time identifier.
+                                     nrow = prevNum - curNum, ncol = 7, byrow = TRUE))}
+    if(j == ncol(surv_dat) & curNum > 0){
+      df_sub <- rbind(df_sub, matrix(c(as.character(row_sub[1:5])), #str_remove(names(Data)[j], "t_"), 0),
+                                     nrow = curNum, ncol = 7, byrow = TRUE))}
+    prevNum <- curNum} #At the last column, if the current number is greater than 0, it adds rows indicating the subject survived until the end of the study (Cens = 0). prevNum is updated to the current number for the next iteration.
+  df_main <- rbind(df_main, df_sub)} #results stored in df_sub are combined into df_main
+#This gives a big error: "Warning: data length [5] is not a sub-multiple or multiple of the number of columns [7]" FIGURE OUT WHAT THIS MEANS AND FIX IT!!!!
+
+
+df_main <- data.frame(df_main, stringsAsFactors = FALSE) #df_main is converted from a matrix to a data frame.
+names(df_main) <- c(names(surv_dat)[1:5], "ToD", "Cens") #column names are set to the first five column names of the original dataset, followed by ToD and Cens. NOTE THAT THIS INCLUDES MAY.2 FOR SOME REASON
+df_main$Row <- as.numeric(df_main$Row) #convert columns to numeric
+df_main$Group <- as.numeric(df_main$Group)
+df_main$Plant <- as.numeric(df_main$Plant)
+df_main$Treatment <- as.numeric(df_main$Treatment)
+df_main$ToD <- as.numeric(df_main$ToD)
+df_main$Cens <- as.numeric(df_main$Cens)
+DataAlt <- df_main #final data frame is stored in DataAlt
+
+# Remove temporary variables since they will no longer be used
+remove(df_main, df_sub, row_sub, curNum, prevNum, i, j)
+
+#From Trevor's "stats" script
+# Total proportion of seeds removed after a given time - we could get proportion of plants dead after a given time, can also get proportion by treatment by using one of the 8 treatment-specific datasets made above
+1 - mean(surv_dat$May.2); sd(surv_dat$May.2)/sqrt(length(surv_dat$May.2))    # May 2nd - 0 means all values are 1, average is 1 meaning survival because of subtraction
+1 - mean(surv_dat$May.30); sd(surv_dat$May.30)/sqrt(length(surv_dat$May.30))    # May 30th
+1 - mean(surv_dat$Jul.25); sd(surv_dat$Jul.25)/sqrt(length(surv_dat$Jul.25))    # July 25th
+
+#GLMS for seed removal (or plant death over time) using proportion data - see Trevor's code. I don't think we need to do this because we don't have replicated proportion data
+GLM_Jul25<- glmer(cbind(1 - surv_dat$Jul.25, surv_dat$Jul.25) ~ Treatment + (1|Block), data = surv_dat, family = "binomial")
+summary(GLM_Jul25)
+#THIS DOES NOT WORK FOR ME - I THINK BECAUSE I'M NOT STARTING WITH 25 SEEDS; RATHER A SINGLE PLANT
+
+#Not sure we need to do this next part
+##### Qualitative comparison of GLMs and survival regressions ---------------------------------------------
+
+# Some sort of accelerated failure model (increasing hazard over time) makes most sense
+# Will try exponential and Weibull
+
+# Note: preferred method frailty() for random effect in survival model does NOT work in survreg
+# Encoding random effect as (1|Block) also does not work; will thus encode as fixed effect
+# This is perfectly valid, just does not let us make numeric predictions outside context of experiment
+
+# CA, exponential hazard
+Surv1_CA <- survreg(Surv(ToD, Cens) ~ Warmed + Elaiosome + Warmed:Elaiosome + as.factor(Block),
+                    data = DataAlt_CA, dist = "exponential")
+summary(Surv1_CA)
+AIC(Surv1_CA)
+
+# CA, Weibull (default) hazard
+Surv2_CA <- survreg(Surv(ToD, Cens) ~ Warmed + Elaiosome + Warmed:Elaiosome + as.factor(Block),
+                    data = DataAlt_CA)
+summary(Surv2_CA)
+AIC(Surv2_CA)
+
+#Plots, based on Trevor's code, more info in that script including for legends, etc.
+
+#Compare two treatments - we could maybe do this with all 8?
+# CN Unwarmed: E+ (dark green) v E- (light green)
+print(surv.plots(Data_CN_NW_YE, Data_CN_NW_NE, PlotColours[1], PlotColours[2],
+                 bottom = FALSE, left = TRUE, atext = "CN Unwarmed"),
+      vp = viewport(layout.pos.row = 25:500, layout.pos.col = 25:700)) #this last line might not be necessary
+
+#first, define function to plot 2 survival curves
+surv.plots <- function(df1, df2, colour1, colour2, bottom, left, atext){
+  
+  # Get p-value from K-S test
+  pval <- time.ks(df1, df2)
+  pval <- ifelse(pval < 0.001, "italic(p) < 0.001",
+                 paste("paste(italic(p), \" =\")",
+                       paste0("\"", sprintf("%0.3f", round(pval, 3)), "\""), sep = "~"))
+  
+  # Plot survival curves
+  ggplot() +
+    geom_point(data = time.means(df1), aes(x = Time, y = Mean), colour = colour1, size = 0.01) +
+    geom_line(data = time.means(df1), aes(x = Time, y = Mean), colour = colour1, size = 0.25) +
+    geom_errorbar(data = time.means(df1), aes(x = Time, ymin = Mean - SEM, ymax = Mean + SEM),
+                  width = 0.3, colour = colour1, size = 0.2) +
+    geom_point(data = time.means(df2), aes(x = Time, y = Mean), colour = colour2, size = 0.01) +
+    geom_line(data = time.means(df2), aes(x = Time, y = Mean), colour = colour2, size = 0.25) +
+    geom_errorbar(data = time.means(df2), aes(x = Time, ymin = Mean - SEM, ymax = Mean + SEM),
+                  width = 0.3, colour = colour2, size = 0.2) +
+    coord_cartesian(ylim = c(0, 1)) +
+    scale_x_continuous(expand = c(0.01, 0.01), limits = c(0, 15), 
+                       breaks = c(seq(1,14, by = 1)),
+                       labels = c(0, rep("", 21))) +
+    annotate("text", x = 47.7, y = 25, label = atext, hjust = 1, size = 1.3) +
+    annotate("text", x = 47.7, y = 23.4, label = pval, hjust = 1, size = 1.3, parse = TRUE) +
+    xlab("Time (Date)") +
+    ylab("Plants Remaining") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.major.y = element_line(colour = "gray90", size = 0.2),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          panel.border = element_rect(colour = "black", fill = NA, size = 0.4),
+          panel.background = element_rect(fill = "white"),
+          axis.text.x = element_text(size = 3.5),
+          axis.text.y = element_text(size = 3.5),
+          axis.title.x = element_text(size = 4),
+          axis.title.y = element_text(size = 4),
+          axis.ticks = element_line(colour = "black", size = 0.2),
+          axis.ticks.length = unit(0.04, "cm")) -> graph
+  
+  # Format graphs depending on panel placement
+  if(bottom == FALSE & left == TRUE){
+    graph + theme(axis.ticks.x = element_blank(),
+                  axis.text.x = element_blank(),
+                  axis.title.x = element_blank(),
+                  plot.margin = unit(c(0.08, 0.03, 0.43, 0.06), "cm"))} -> graph
+  if(bottom == TRUE & left == TRUE){
+    graph + theme(plot.margin = unit(c(0.01, 0.03, 0.08, 0.06), "cm"))} -> graph
+  if(bottom == FALSE & left == FALSE){
+    graph + theme(axis.ticks = element_blank(),
+                  axis.text.x = element_blank(),
+                  axis.text.y = element_blank(),
+                  axis.title.x = element_blank(),
+                  axis.title.y = element_blank(),
+                  plot.margin = unit(c(0.08, 0.10, 0.43, 0.42), "cm"))} -> graph
+  if(bottom == TRUE & left == FALSE){
+    graph + theme(axis.ticks.y = element_blank(),
+                  axis.text.y = element_blank(),
+                  axis.title.y = element_blank(),
+                  plot.margin = unit(c(0.01, 0.10, 0.08, 0.42), "cm"))} -> graph
+  
+  # Output graph
+  return(graph)}
+
+print(surv.plots(surv_dat_control, surv_dat_RDEMLM, PlotColours[1], PlotColours[2], bottom = FALSE, left = TRUE, atext="Control vs. All Damage"))
+
+# Plot survival curves
+print(surv.plots4(Data_CN_NW_NE, Data_CN_NW_YE, Data_CN_YW_NE, Data_CN_YW_YE,
+                  PlotColours_All[1], PlotColours_All[3], PlotColours_All[5], PlotColours_All[7], TRUE),
+      vp = viewport(layout.pos.row = 25:775, layout.pos.col = 25:1375))
+
+
+```
+
+
+#Survival Conclusions:
+
+#Flowering Date
+
+Analysis of date of first flowering. 
+
+```{r}
+#fit model and summarize
+#add LLL at a later date
+fit4 <- glmmTMB(FloweringDate ~ Treatment + (1|Block), data = dat, family = "gaussian")
+summary(fit4)
+
+#check residuals
+sim.fit4<-simulateResiduals(fit4)
+plot(sim.fit4) #visual inspection of residuals: looks good
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmFlDate <- emmeans(fit4, specs=pairwise~Treatment, type="response")
+emmFlDate
+
+#Visualize output
+#Put emmeans output into a data frame
+FlDate<-as.data.frame(emmFlDate[1])
+#Scale data smaller for visualization
+FlDate$mean<-FlDate$emmeans.emmean/10
+FlDate$LCL<-FlDate$emmeans.lower.CL/10
+FlDate$UCL<-FlDate$emmeans.upper.CL/10
+
+#make a plot
+FlDatePlot<-ggplot(FlDate,aes(y=mean, x=emmeans.Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1))+
+  labs(x="Treatment", y="Flowering Date")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ylim(0,20)+
+  ggtitle("Average date of first flowering")+
+  geom_errorbar(aes(x=emmeans.Treatment, ymin=LCL, ymax=UCL))
+FlDatePlot
+```
+
+#Maximum Height (after mowing is complete)
+
+```{r}
+#fit model and summarize
+fit5<-glmmTMB(MaxHeight~Treatment+LLLMay2+(1|Block), data=dat, family="nbinom1")
+summary(fit5)
+
+#check residuals
+sim.fit5<-simulateResiduals(fit5)
+plot(sim.fit5)
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmMaxHt <- emmeans(fit5, specs=pairwise~Treatment, type="response")
+emmMaxHt
+
+#Visualize
+#Put emmeans output into a data frame
+MaxHt<-as.data.frame(emmMaxHt[1])
+
+#make a plot
+MaxHtPlot<-ggplot(MaxHt,aes(y=emmeans.response, x=emmeans.Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1))+
+  labs(x="Treatment", y="Maximum Height")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ylim(0,150)+
+  ggtitle("Maximum Height (cm)")+
+  geom_errorbar(aes(x=emmeans.Treatment, ymin=emmeans.asymp.LCL, ymax=emmeans.asymp.UCL))
+MaxHtPlot
+```
+
