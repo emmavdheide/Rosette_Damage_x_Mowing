@@ -34,6 +34,7 @@ library(DHARMa)
 library(emmeans)
 library(ggplot2)
 library(dplyr)
+library(multcomp)
 ```
 
 #Analyze Maximum Number of Capitula
@@ -54,17 +55,23 @@ plot(sim.fit1) #Visual inspection: this looks great
 emmMaxCap <- emmeans(fit1, specs=pairwise~Treatment, type="response")
 emmMaxCap
 
+#get compact letter display for pairwise comparisons
+cld(emmMaxCap, Letters=letters)
+
 #Visualize results
 #Put emmeans output into a data frame
-MaxCap<-as.data.frame(emmMaxCap[1])
+MaxCap<-as.data.frame(cld(emmMaxCap, Letters=letters))
 #make a plot
-MaxCapPlot<-ggplot(MaxCap,aes(y=emmeans.rate, x=emmeans.Treatment))+
+MaxCapPlot<-ggplot(MaxCap,aes(y=rate, Treatment))+
   geom_bar(stat = "identity")+
   theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1))+
   labs(x="Treatment", y="Capitula Production")+
-  ylim(0, 12)+
+  geom_text(aes(label = .group, y = max(rate) + 3.5), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  ylim(0, 14)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
   ggtitle("Maximum Number of Capitula Present on Plant")+
-  geom_errorbar(aes(x=emmeans.Treatment, ymin=emmeans.asymp.LCL, ymax=emmeans.asymp.UCL))
+  geom_errorbar(aes(x=Treatment, ymin=asymp.LCL, ymax=asymp.UCL))
 MaxCapPlot
 ```
 
@@ -84,17 +91,23 @@ plot(sim.fit2) #visual inspection: looks great
 emmHtFl <- emmeans(fit2, specs=pairwise~Treatment, type="response")
 emmHtFl
 
+#get compact letter display for pairwise comparisons
+cld(emmHtFl, Letters=letters)
+
 #Visualize results
 #Put emmeans output into a data frame
-HtFl<-as.data.frame(emmHtFl[1])
+HtFl<-as.data.frame(cld(emmHtFl, Letters=letters))
 #make a plot
-HtFlPlot<-ggplot(HtFl,aes(y=emmeans.emmean, x=emmeans.Treatment))+
+HtFlPlot<-ggplot(HtFl,aes(y=emmean, x=Treatment))+
   geom_bar(stat = "identity")+
   theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1))+
   labs(x="Treatment", y="Height at Flowering")+
-  ylim(0, 120)+
+    geom_text(aes(label = .group, y = max(emmean) + 20), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  ylim(0, 130)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
   ggtitle("Height at Flowering")+
-  geom_errorbar(aes(x=emmeans.Treatment, ymin=emmeans.lower.CL, ymax=emmeans.upper.CL))
+  geom_errorbar(aes(x=Treatment, ymin=lower.CL, ymax=upper.CL))
 HtFlPlot
 ```
 
@@ -358,7 +371,7 @@ Analysis of date of first flowering.
 ```{r}
 #fit model and summarize
 #add LLL at a later date
-fit4 <- glmmTMB(FloweringDate ~ Treatment + (1|Block), data = dat, family = "gaussian")
+fit4 <- glmmTMB(FloweringDate_doe ~ Treatment + (1|Block), data = dat, family = "gaussian")
 summary(fit4)
 
 #check residuals
@@ -369,23 +382,28 @@ plot(sim.fit4) #visual inspection of residuals: looks good
 emmFlDate <- emmeans(fit4, specs=pairwise~Treatment, type="response")
 emmFlDate
 
+#get compact letter display for pairwise comparisons
+cld(emmFlDate, Letters=letters)
+
 #Visualize output
 #Put emmeans output into a data frame
-FlDate<-as.data.frame(emmFlDate[1])
+FlDate<-as.data.frame(cld(emmFlDate, Letters=letters))
 #Scale data smaller for visualization
 FlDate$mean<-FlDate$emmeans.emmean/10
 FlDate$LCL<-FlDate$emmeans.lower.CL/10
 FlDate$UCL<-FlDate$emmeans.upper.CL/10
 
 #make a plot
-FlDatePlot<-ggplot(FlDate,aes(y=mean, x=emmeans.Treatment))+
+FlDatePlot<-ggplot(FlDate,aes(y=emmean, x=Treatment))+
   geom_bar(stat = "identity")+
   theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1))+
-  labs(x="Treatment", y="Flowering Date")+
+  labs(x="Treatment", y="Flowering Date (Day of Experiment)")+
+    geom_text(aes(label = .group, y = max(emmean) + 10), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
-  ylim(0,20)+
+  ylim(0,90)+
   ggtitle("Average date of first flowering")+
-  geom_errorbar(aes(x=emmeans.Treatment, ymin=LCL, ymax=UCL))
+  geom_errorbar(aes(x=Treatment, ymin=lower.CL, ymax=upper.CL))
 FlDatePlot
 ```
 
