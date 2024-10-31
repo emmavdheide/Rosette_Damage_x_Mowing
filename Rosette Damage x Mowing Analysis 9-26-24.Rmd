@@ -115,35 +115,8 @@ HtFlPlot
 
 #Survival
 
-Analysis of survivorship on July 5th, X weeks after the last mowing treatment. 
+Analysis of survival is in a separate document. Below is some code I was playing with initially that wasn't working the way I intended. Will eventually delete this part from this document.
 In future, could look at how survivorship decreases through time (the full curve). See Trevor's seed dispersal paper, code is in Emma's downloads folder.
-
-```{r Survival}
-#using the package survival
-fit3 <- glmmTMB(SurviveJuly5~Treatment + (1|Block), data=dat, family="binomial")
-summary(fit3)
-
-#check residuals
-sim.fit3<-simulateResiduals(fit3)
-plot(sim.fit3) #visual inspection: looks great
-
-#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
-emmSurv <- emmeans(fit3, specs=pairwise~Treatment, type="response")
-emmSurv
-
-#Visualize results
-#Put emmeans output into a data frame
-Surv<-as.data.frame(emmSurv[1])
-#make a plot
-SurvPlot<-ggplot(Surv,aes(y=emmeans.prob, x=emmeans.Treatment))+
-  geom_bar(stat = "identity")+
-  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1))+
-  labs(x="Treatment", y="Survivorship Propability")+
-  ylim(0, 1)+
-  ggtitle("Probability of Survival on July 5th")+
-  geom_errorbar(aes(x=emmeans.Treatment, ymin=emmeans.asymp.LCL, ymax=emmeans.asymp.UCL))
-SurvPlot
-```
 
 #Survival analysis, based on Trevor's paper
 
@@ -167,7 +140,7 @@ na.sem <- function(x){
 
 # Function to apply above functions to each treatment group
 time.means <- function(df){ #function take 1 argument, a dataframe
-  #df <- select(df, -Block) #select data frame, remove column block (I don't think we need this)
+  df <- select(df, -Block) #select data frame, remove column block (I don't think we need this)
   df_means <- apply(df[, 5:ncol(df)], MARGIN = 2, FUN = na.mean) #the next 3 lines calculate stats for each column from column 5 to the end, margin=2 tells function to apply to columns (=1 if rows)
   df_sd <- apply(df[, 5:ncol(df)], MARGIN = 2, FUN = na.sd)
   df_sem <- apply(df[, 5:ncol(df)], MARGIN = 2, FUN = na.sem)
@@ -179,8 +152,8 @@ time.means <- function(df){ #function take 1 argument, a dataframe
 # Use 2-sided K-S test, with code adapted from ks.test function
 # Set function environment to "stats" for calling internally-compiled code
 time.ks <- function(df1, df2){ #function that takes two dataframes as input
-  #df1 <- select(df1, -Block) #in each df, remove column block (I don't think we need this)
-  #df2 <- select(df2, -Block)
+  df1 <- select(df1, -Block) #in each df, remove column block (I don't think we need this)
+  df2 <- select(df2, -Block)
   df_means1 <- apply(df1[, 5:ncol(df1)], MARGIN = 2, FUN = na.mean) #calculate means of each column from column 5 to the end
   df_means2 <- apply(df2[, 5:ncol(df2)], MARGIN = 2, FUN = na.mean)
   D <- max(abs((1 - df_means1) - (1 - df_means2))) #calculates the maximum absolute difference between the transformed means from both data frames. The transformation involves subtracting each mean from 1 (originally divided df_means/25 because 25 seeds) and then taking the absolute value. This quantifies the largest deviation between the two data sets
@@ -217,7 +190,7 @@ for(i in 1:nrow(surv_dat)){ #initialize the main data frame, iterates over every
   if(i == 1){
     df_main <- matrix(ncol = 7, nrow = 0)} #creates an empty matrix with 7 columns - NOT SURE WHY 7?????
   row_sub <- surv_dat[i, ] #The current row from Data is stored in row_sub
-  for(j in 7:ncol(surv_dat)){ #nested loop that goes through columns starting with column 7
+  for(j in 7:ncol(surv_dat)){ #nested loop that goes through columns starting with column 7 - SHOULD MAYBE BE 6 BECAUSE SURVIVAL DATA STARTS IN COLUMN 6? OR 5 IF WE'RE DOING -BLOCK
     if(j == 7){
       prevNum <- 1 #where the data starts/maximum number of seeds, formerly 25
       df_sub <- matrix(ncol = 7, nrow = 0)} #holds temporary results
