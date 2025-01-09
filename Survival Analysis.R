@@ -15,27 +15,45 @@ library(ggplot2)
 #censoring status: 0=censored (made it to the end), 1=dead
 survdat<-read.csv("SurvDataAlt.csv")
 
-#Make treatment into a factor (status does not need to be a factor for this analysis)
-survdat$Treatment<-as.factor(survdat$Treatment)
+#Make treatment, etc. into factors (status does not need to be a factor for this analysis)
+survdat$Block <- as.factor(survdat$Block)
+survdat$SubBlock <- as.factor(survdat$SubBlock)
+survdat$Treatment <- as.factor(survdat$Treatment)
+survdat$RosDam <- as.factor(survdat$RosDam)
+survdat$EarlyMow <- as.factor(survdat$EarlyMow)
+survdat$LateMow <- as.factor(survdat$LateMow)
+
+#Add Treatment Abbreviations to Data for Exploratory Plots
+survdat<-mutate(survdat, TreatmentAbb=case_when(
+  RosDam == "n" & EarlyMow == "n" & LateMow == "n" ~ "Control",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "n" ~ "RD",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "n" ~ "RD+EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "n" ~ "EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "y" ~ "EM+LM",
+  RosDam == "n" & EarlyMow == "n" & LateMow == "y" ~ "LM",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "y" ~ "RD+EM+LM",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "y" ~ "RD+LM",
+))
 
 #exploratory plots
 hist(survdat$TimeOfDeath_doe)
-survdat %>%
-ggplot(aes(x=Treatment, y=TimeOfDeath_doe, fill=Treatment)) +
+ToDPlot<-survdat %>%
+ggplot(aes(x=TreatmentAbb, y=TimeOfDeath_doe, fill=TreatmentAbb)) +
   geom_boxplot() +
   #geom_jitter(color="black", size=0.4, alpha=0.9) + #would include jittered points
   theme(
     legend.position="none",
     plot.title = element_text(size=11)
   ) +
-  ggtitle("Time of Death (day of experiment) by Treatment") +
+  ggtitle("Time of Death by Treatment") +
   xlab("Treatment")+
-  ylab("Date of Death")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) #angle text 45 degrees
+  ylab("Time of Death (day of experiment)")#+
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1)) #angle text 45 degrees
+ToDPlot
 
 #look at the first 10 observations to make sure this is coded correctly
 Surv(survdat$TimeOfDeath_doe, survdat$Status)[1:10]
-#so the first plant survived 216 days, 2nd 205 days, etc.
+#so the first plant survived 94 days, 2nd 83 days, etc.
 
 #fit a survival curve to all observations and plot using Kaplan-Meier method (non-parametric)
 s1 <- survfit(Surv(TimeOfDeath_doe, Status) ~ 1, data = survdat)
@@ -55,49 +73,53 @@ survfit2(Surv(TimeOfDeath_doe, Status) ~ 1, data = survdat) %>%
 
 
 #compare survival times by treatment using a log-rank test
-survdiff(Surv(TimeOfDeath_doe, Status) ~ Treatment, data = survdat)
+survdiff(Surv(TimeOfDeath_doe, Status) ~ TreatmentAbb, data = survdat)
 #this chisquare test tells us that there is a significant difference from expected for at least one group
 
 #Fit a survival regression with treatment as a predictor
-s2 <- survfit(Surv(TimeOfDeath_doe, Status) ~ Treatment, data = survdat)
+s2 <- survfit(Surv(TimeOfDeath_doe, Status) ~ TreatmentAbb, data = survdat)
 summary(s2)
 
 #plot s2
-survfit2(Surv(TimeOfDeath_doe, Status) ~ Treatment, data = survdat) %>% 
+survfit2(Surv(TimeOfDeath_doe, Status) ~ TreatmentAbb, data = survdat) %>% 
   ggsurvfit() +
   labs(
     x = "Days",
     y = "Overall survival probability"
-  )+ 
-  add_confidence_interval()
+  )+
+  scale_color_manual(values =  c("coral1", "darkgoldenrod2", "olivedrab3", "springgreen3", 
+                                "darkturquoise", "deepskyblue", "darkorchid1", "hotpink"))  # Change colors
+  #geom_line(size = 1.5, alpha = 0.7)+ #line thickness and transparency, THIS DOESN'T WORK
+  #scale_linetype_manual(values = c("solid", "dashed", "dotted", "solid", "dashed", "dotted", "solid", "dashed"))  # Change line types - THIS DOESN'T WORK
+  #add_confidence_interval()
 #This illustrates the different survival curves by treatment, along with 95% (FACT CHECK) confidence intervals
-
-
+  
 #To figure out which treatments were significantly different, we will fit parametric survival regressions with different hazard models and compare with AIC
   #We could compare some options with analysis of deviance (anova()), but that will only work for nested models
 #exponential
-s3<-survreg(Surv(TimeOfDeath_doe, Status)~Treatment, data=survdat, dist="exponential")
+
+s3<-survreg(Surv(TimeOfDeath_doe, Status)~TreatmentAbb, data=survdat, dist="exponential")
 summary(s3)
 
 #Weibull (the default for survreg)
-s4<-survreg(Surv(TimeOfDeath_doe, Status)~Treatment, data=survdat)
+s4<-survreg(Surv(TimeOfDeath_doe, Status)~TreatmentAbb, data=survdat)
 summary(s4)
 #try to figure out what scale = 0.132 means - R book suggests that less than 1 indicates hazard decreasing with age (pg 803)
 
 #Gaussian
-s5<-survreg(Surv(TimeOfDeath_doe, Status)~Treatment, data=survdat, dist="gaussian")
+s5<-survreg(Surv(TimeOfDeath_doe, Status)~TreatmentAbb, data=survdat, dist="gaussian")
 summary(s5)
 
 #Logistic
-s6<-survreg(Surv(TimeOfDeath_doe, Status)~Treatment, data=survdat, dist="logistic")
+s6<-survreg(Surv(TimeOfDeath_doe, Status)~TreatmentAbb, data=survdat, dist="logistic")
 summary(s6)
 
 #Lognormal
-s7<-survreg(Surv(TimeOfDeath_doe, Status)~Treatment, data=survdat, dist="lognormal")
+s7<-survreg(Surv(TimeOfDeath_doe, Status)~TreatmentAbb, data=survdat, dist="lognormal")
 summary(s7)
 
 #Loglogistic
-s8<-survreg(Surv(TimeOfDeath_doe, Status)~Treatment, data=survdat, dist = "loglogistic")
+s8<-survreg(Surv(TimeOfDeath_doe, Status)~TreatmentAbb, data=survdat, dist = "loglogistic")
 summary(s8)
 
 #compare these options
@@ -106,11 +128,16 @@ AIC(s3, s4, s5, s6, s7, s8)
   #logistic hazard fits the best
 
 #Since s6 is the best model, get pairwise comparisons
-emmTOD <- emmeans(s6, specs=pairwise~Treatment, type="response")
+emmTOD <- emmeans(s6, specs=pairwise~TreatmentAbb, type="response")
 emmTOD
 
 #get compact letter display for pairwise comparisons
-cld(emmTOD, Letters=letters)
+cld<-cld(emmTOD, Letters=letters)
+cld
+
+#Add these letters to the earlier ToDPlot
+ToDPlot+
+  geom_text(data = cld, aes(x=TreatmentAbb, y=65, label = .group), size = 5, color = "black")
 
 #Other ways to evaluate fit would be to graph the model-based cumulative hazard against the Kaplan-Meier estimated cumulative hazard function
   #If specified form is correct, this should go through the origin with slope 1
@@ -245,6 +272,44 @@ ks.test(mean_sem_df$Mean_Control, mean_sem_df$Mean_RDLM) #control vs. RDLM, not 
 
 #Time dependent covariates? I think this is important because plants were "exposed" to different treatments at different times
   #potentially competing risks analysis because each treatment application can be thought of as a risk/death could theoretically result from any of them
+#see https://cran.r-project.org/web/packages/survival/vignettes/timedep.pdf for time dependent covariates
+#ChatGPT also suggests longitudinal survival models
+
+#It might be possible to incorporate the timing of each treatment, its status, and the interaction of statuses
+s11<-coxph(Surv(TimeOfDeath_doy, Status)~TimeRD_doy+StatusRD+TimeEM_doy+StatusEM+TimeLM_doy+StatusLM+StatusRD*StatusEM*StatusLM, data = survdat)
+summary(s11)
+
+#get pairwise comparisons
+emmTOD_timing <- emmeans(s11, specs=pairwise~StatusRD*StatusEM*StatusLM, type="response")
+emmTOD_timing
+#Note that this takes the p-values out of significance territory, but control/RDLM is still the strongest contrast
+
+#get compact letter display for pairwise comparisons
+cld(emmTOD_timing, Letters=letters)
+
+#Try for time-dependent covariates with two data structures
+TDCsurvdat1<-read.csv("Time Dependent Survival Data.csv") #in this one, for example, RD has an indicator of 0 when EM is applied in RDEM
+TDCsurvdat1$Status<-as.factor(TDCsurvdat1$Status)
+TDCsurvdat1$RD<-as.factor(TDCsurvdat1$RD)
+TDCsurvdat1$EM<-as.factor(TDCsurvdat1$EM)
+TDCsurvdat1$LM<-as.factor(TDCsurvdat1$LM)
+TDCsurvdat1$PlantID<-as.factor(TDCsurvdat1$PlantID)
+#remove R7G1P3 because death date is same as LM application date
+TDCsurvdat1 <- TDCsurvdat1[!(TDCsurvdat1$Row == 7 & TDCsurvdat1$Group == 1 & TDCsurvdat1$Plant == 3), ]
+
+
+TDCsurvdat2<-read.csv("Time Dependent Survival Data 2.csv") #in this one, RD has an indicator of 1 when EM is applied in RDEM
+TDCsurvdat2$Status<-as.factor(TDCsurvdat2$Status)
+TDCsurvdat2$RD<-as.factor(TDCsurvdat2$RD)
+TDCsurvdat2$EM<-as.factor(TDCsurvdat2$EM)
+TDCsurvdat2$LM<-as.factor(TDCsurvdat2$LM)
+#remove R7G1P3 because death date is same as LM application date
+TDCsurvdat2 <- TDCsurvdat2[!(TDCsurvdat2$Row == 7 & TDCsurvdat2$Group == 1 & TDCsurvdat2$Plant == 3), ]
+
+#fit a cox proportional hazard model with time-dependent covariates
+#with the first data structure
+s12<-coxph(Surv(Time1_doe, Time2_doe, Status)~RD+EM+LM+strata(PlantID), data = TDCsurvdat1)
+#might need an id variable for every row in the data set, rather than every plant?
 
 #or analysis with time of treatment? Fit a treatment specific model, treatment*timing, and timing only and compare models with anova?
 #Look at Rui's paper and her frequency vs timing analysis - would we still conclude that timing is more important than frequency?

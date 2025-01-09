@@ -1,95 +1,95 @@
-Block,Row,Group,Plant,PlantID,Treatment,TimeOfDeath_doe,TimeOfDeath_doy,Status,TimeRD_doy,StatusRD,TimeEM_doy,StatusEM,TimeLM_doy,StatusLM
-1,5,1,1,,6. Early Mow,94,216,1,216,0,150,1,216,0
-1,5,1,2,,1. Control,83,205,1,216,0,216,0,216,0
-1,5,1,3,,2. Rosette Damage,94,216,1,123,1,216,0,216,0
-1,5,1,4,,5. Rosette Damage/Early Mow/Late Mow,94,216,1,123,1,136,1,150,1
-2,5,3,1,,1. Control,83,205,1,216,0,216,0,216,0
-2,5,3,2,,4. Rosette Damage/Late Mow,48,170,1,123,1,216,0,164,1
-2,5,3,3,,7. Early Mow/Late Mow,83,205,1,216,0,150,1,164,1
-2,5,3,4,,3. Rosette Damage/Early Mow,94,216,1,123,1,143,1,216,0
-3,5,5,1,,1. Control,94,216,1,216,0,216,0,216,0
-3,5,5,2,,7. Early Mow/Late Mow,94,216,1,216,0,136,1,150,1
-3,5,5,3,,2. Rosette Damage,83,205,1,123,1,216,0,216,0
-3,5,5,4,,8. Late Mow,76,198,1,216,0,216,0,157,1
-4,5,7,1,,3. Rosette Damage/Early Mow,94,216,1,123,1,150,1,216,0
-4,5,7,2,,4. Rosette Damage/Late Mow,48,170,1,123,1,216,0,164,1
-4,5,7,3,,2. Rosette Damage,76,198,1,123,1,216,0,216,0
-4,5,7,4,,8. Late Mow,94,216,1,216,0,216,0,157,1
-1,6,2,1,,7. Early Mow/Late Mow,76,198,1,216,0,157,1,171,1
-1,6,2,2,,4. Rosette Damage/Late Mow,48,170,1,123,1,216,0,164,1
-1,6,2,3,,3. Rosette Damage/Early Mow,94,216,1,123,1,143,1,216,0
-1,6,2,4,,8. Late Mow,55,177,1,216,0,216,0,171,1
-2,6,4,1,,5. Rosette Damage/Early Mow/Late Mow,94,216,1,123,1,143,1,157,1
-2,6,4,2,,2. Rosette Damage,94,216,1,123,1,216,0,216,0
-2,6,4,3,,6. Early Mow,94,216,1,216,0,143,1,216,0
-2,6,4,4,,8. Late Mow,83,205,1,216,0,216,0,157,1
-3,6,6,1,,6. Early Mow,94,216,1,216,0,143,1,216,0
-3,6,6,2,,4. Rosette Damage/Late Mow,39,161,1,123,1,216,0,157,1
-3,6,6,3,,5. Rosette Damage/Early Mow/Late Mow,94,216,1,123,1,143,1,157,1
-3,6,6,4,,3. Rosette Damage/Early Mow,94,216,1,123,1,150,1,216,0
-4,6,8,1,,7. Early Mow/Late Mow,94,216,1,216,0,150,1,164,1
-4,6,8,2,,1. Control,94,216,1,216,0,216,0,216,0
-4,6,8,3,,6. Early Mow,83,205,1,216,0,136,1,216,0
-4,6,8,4,,5. Rosette Damage/Early Mow/Late Mow,94,216,1,123,1,143,1,157,1
-1,7,1,1,,2. Rosette Damage,94,216,1,123,1,216,0,216,0
-1,7,1,2,,1. Control,94,216,1,216,0,216,0,216,0
-1,7,1,3,,7. Early Mow/Late Mow,39,161,1,216,0,157,1,171,1
-1,7,1,4,,8. Late Mow,63,185,1,216,0,216,0,164,1
-2,7,3,1,,7. Early Mow/Late Mow,76,198,1,216,0,143,1,157,1
-2,7,3,2,,6. Early Mow,76,198,1,216,0,143,1,216,0
-2,7,3,3,,2. Rosette Damage,94,216,1,123,1,216,0,216,0
-2,7,3,4,,3. Rosette Damage/Early Mow,83,205,1,123,1,136,1,216,0
-3,7,5,1,,4. Rosette Damage/Late Mow,76,198,1,123,1,216,0,157,1
-3,7,5,2,,1. Control,94,216,1,216,0,216,0,216,0
-3,7,5,3,,5. Rosette Damage/Early Mow/Late Mow,94,216,1,123,1,150,1,164,1
-3,7,5,4,,3. Rosette Damage/Early Mow,94,216,1,123,1,150,1,216,0
-4,7,7,1,,6. Early Mow,94,216,1,216,0,150,1,216,0
-4,7,7,2,,4. Rosette Damage/Late Mow,48,170,1,123,1,216,0,164,1
-4,7,7,3,,2. Rosette Damage,94,216,1,123,1,216,0,216,0
-4,7,7,4,,5. Rosette Damage/Early Mow/Late Mow,94,216,1,123,1,150,1,164,1
-1,8,2,1,,3. Rosette Damage/Early Mow,94,216,1,123,1,150,1,216,0
-1,8,2,2,,6. Early Mow,94,216,1,216,0,150,1,216,0
-1,8,2,3,,4. Rosette Damage/Late Mow,83,205,1,123,1,216,0,157,1
-1,8,2,4,,5. Rosette Damage/Early Mow/Late Mow,76,198,1,123,1,150,1,164,1
-2,8,4,1,,5. Rosette Damage/Early Mow/Late Mow,76,198,1,123,1,143,1,157,1
-2,8,4,2,,8. Late Mow,76,198,1,216,0,216,0,157,1
-2,8,4,3,,4. Rosette Damage/Late Mow,48,170,1,123,1,216,0,164,1
-2,8,4,4,,1. Control,83,205,1,216,0,216,0,216,0
-3,8,6,1,,8. Late Mow,76,198,1,216,0,216,0,157,1
-3,8,6,2,,2. Rosette Damage,83,205,1,123,1,216,0,216,0
-3,8,6,3,,6. Early Mow,39,161,1,216,0,143,1,216,0
-3,8,6,4,,7. Early Mow/Late Mow,76,198,1,143,1,216,0,157,1
-4,8,8,1,,3. Rosette Damage/Early Mow,83,205,1,123,1,143,1,216,0
-4,8,8,4,,8. Late Mow,95,217,0,216,0,216,0,164,1
-1,9,1,1,,8. Late Mow,48,170,1,216,0,216,0,157,1
-1,9,1,2,,4. Rosette Damage/Late Mow,48,170,1,123,1,216,0,157,1
-1,9,1,3,,1. Control,76,198,1,216,0,216,0,216,0
-1,9,1,4,,7. Early Mow/Late Mow,76,198,1,216,0,136,1,150,1
-2,9,3,1,,3. Rosette Damage/Early Mow,83,205,1,123,1,150,1,216,0
-2,9,3,2,,1. Control,83,205,1,216,0,216,0,216,0
-2,9,3,3,,7. Early Mow/Late Mow,94,216,1,143,0,143,1,157,1
-2,9,3,4,,6. Early Mow,94,216,1,216,0,143,1,216,0
-3,9,5,1,,5. Rosette Damage/Early Mow/Late Mow,76,198,1,123,1,150,1,164,1
-3,9,5,2,,1. Control,94,216,1,216,0,216,0,216,0
-3,9,5,3,,4. Rosette Damage/Late Mow,76,198,1,123,1,216,0,157,1
-3,9,5,4,,7. Early Mow/Late Mow,94,216,1,216,0,143,1,157,1
-4,9,7,1,,5. Rosette Damage/Early Mow/Late Mow,94,216,1,123,1,136,1,150,1
-4,9,7,2,,3. Rosette Damage/Early Mow,94,216,1,123,1,150,1,216,0
-4,9,7,3,,1. Control,76,198,1,216,0,216,0,216,0
-4,9,7,4,,8. Late Mow,94,216,1,216,0,216,0,157,1
-1,10,2,1,,3. Rosette Damage/Early Mow,76,198,1,123,1,143,1,216,0
-1,10,2,2,,6. Early Mow,76,198,1,216,0,143,1,216,0
-1,10,2,3,,2. Rosette Damage,83,205,1,123,1,216,0,216,0
-1,10,2,4,,5. Rosette Damage/Early Mow/Late Mow,76,198,1,123,1,150,1,164,1
-2,10,4,1,,2. Rosette Damage,76,198,1,123,1,216,0,216,0
-2,10,4,2,,4. Rosette Damage/Late Mow,48,170,1,123,1,216,0,164,1
-2,10,4,3,,8. Late Mow,39,161,1,216,0,216,0,157,1
-2,10,4,4,,5. Rosette Damage/Early Mow/Late Mow,83,205,1,123,1,143,1,157,1
-3,10,6,1,,8. Late Mow,94,216,1,216,0,216,0,150,1
-3,10,6,2,,3. Rosette Damage/Early Mow,94,216,1,123,1,143,1,216,0
-3,10,6,3,,6. Early Mow,76,198,1,216,0,150,1,216,0
-3,10,6,4,,2. Rosette Damage,83,205,1,123,1,216,0,216,0
-4,10,8,1,,6. Early Mow,94,216,1,216,0,143,1,216,0
-4,10,8,2,,2. Rosette Damage,83,205,1,123,1,216,0,216,0
-4,10,8,3,,7. Early Mow/Late Mow,83,205,1,216,0,143,1,157,1
-4,10,8,4,,4. Rosette Damage/Late Mow,39,161,1,123,1,216,0,157,1
+Block,SubBlock,RGP,Treatment,RosDam,EarlyMow,LateMow,TimeOfDeath_doe,TimeOfDeath_doy,Status,TimeRosDam_doy,TimeRosDam_doe,TimeEarlyMow_doy,TimeEarlyMow_doe,TimeLateMow_doy,TimeLateMow_doe
+1,1,511,Early Mow,n,y,n,94,216,1,,,150,28,,
+1,1,512,Control,n,n,n,83,205,1,,,,,,
+1,1,513,Rosette Damage,y,n,n,94,216,1,123,1,,,,
+1,1,514,Rosette Damage/Early Mow/Late Mow,y,y,y,94,216,1,123,1,136,14,150,28
+2,1,531,Control,n,n,n,83,205,1,,,,,,
+2,1,532,Rosette Damage/Late Mow,y,n,y,48,170,1,123,1,,,164,42
+2,1,533,Early Mow/Late Mow,n,y,y,83,205,1,,,150,28,164,42
+2,1,534,Rosette Damage/Early Mow,y,y,n,94,216,1,123,1,143,21,,
+3,1,551,Control,n,n,n,94,216,1,,,,,,
+3,1,552,Early Mow/Late Mow,n,y,y,94,216,1,,,136,14,150,28
+3,1,553,Rosette Damage,y,n,n,83,205,1,123,1,,,,
+3,1,554,Late Mow,n,n,y,76,198,1,,,,,157,35
+4,1,571,Rosette Damage/Early Mow,y,y,n,94,216,1,123,1,150,28,,
+4,1,572,Rosette Damage/Late Mow,y,n,y,48,170,1,123,1,,,164,42
+4,1,573,Rosette Damage,y,n,n,76,198,1,123,1,,,,
+4,1,574,Late Mow,n,n,y,94,216,1,,,,,157,35
+1,1,621,Early Mow/Late Mow,n,y,y,76,198,1,,,157,35,171,49
+1,1,622,Rosette Damage/Late Mow,y,n,y,48,170,1,123,1,,,164,42
+1,1,623,Rosette Damage/Early Mow,y,y,n,94,216,1,123,1,143,21,,
+1,1,624,Late Mow,n,n,y,55,177,1,,,,,171,49
+2,1,641,Rosette Damage/Early Mow/Late Mow,y,y,y,94,216,1,123,1,143,21,157,35
+2,1,642,Rosette Damage,y,n,n,94,216,1,123,1,,,,
+2,1,643,Early Mow,n,y,n,94,216,1,,,143,21,,
+2,1,644,Late Mow,n,n,y,83,205,1,,,,,157,35
+3,1,661,Early Mow,n,y,n,94,216,1,,,143,21,,
+3,1,662,Rosette Damage/Late Mow,y,n,y,39,161,1,123,1,,,157,35
+3,1,663,Rosette Damage/Early Mow/Late Mow,y,y,y,94,216,1,123,1,143,21,157,35
+3,1,664,Rosette Damage/Early Mow,y,y,n,94,216,1,123,1,150,28,,
+4,1,681,Early Mow/Late Mow,n,y,y,94,216,1,,,150,28,164,42
+4,1,682,Control,n,n,n,94,216,1,,,,,,
+4,1,683,Early Mow,n,y,n,83,205,1,,,136,14,,
+4,1,684,Rosette Damage/Early Mow/Late Mow,y,y,y,94,216,1,123,1,143,21,157,35
+1,2,711,Rosette Damage,y,n,n,94,216,1,123,1,,,,
+1,2,712,Control,n,n,n,94,216,1,,,,,,
+1,2,713,Early Mow/Late Mow,n,y,y,50,172,1,,,157,35,171,49
+1,2,714,Late Mow,n,n,y,63,185,1,,,,,164,42
+2,2,731,Early Mow/Late Mow,n,y,y,76,198,1,,,143,21,157,35
+2,2,732,Early Mow,n,y,n,76,198,1,,,143,21,,
+2,2,733,Rosette Damage,y,n,n,94,216,1,123,1,,,,
+2,2,734,Rosette Damage/Early Mow,y,y,n,83,205,1,123,1,136,14,,
+3,2,751,Rosette Damage/Late Mow,y,n,y,76,198,1,123,1,,,157,35
+3,2,752,Control,n,n,n,94,216,1,,,,,,
+3,2,753,Rosette Damage/Early Mow/Late Mow,y,y,y,94,216,1,123,1,150,28,164,42
+3,2,754,Rosette Damage/Early Mow,y,y,n,94,216,1,123,1,150,28,,
+4,2,771,Early Mow,n,y,n,94,216,1,,,150,28,,
+4,2,772,Rosette Damage/Late Mow,y,n,y,48,170,1,123,1,,,164,42
+4,2,773,Rosette Damage,y,n,n,94,216,1,123,1,,,,
+4,2,774,Rosette Damage/Early Mow/Late Mow,y,y,y,94,216,1,123,1,150,28,164,42
+1,2,821,Rosette Damage/Early Mow,y,y,n,94,216,1,123,1,150,28,,
+1,2,822,Early Mow,n,y,n,94,216,1,,,150,28,,
+1,2,823,Rosette Damage/Late Mow,y,n,y,83,205,1,123,1,,,157,35
+1,2,824,Rosette Damage/Early Mow/Late Mow,y,y,y,76,198,1,123,1,150,28,164,42
+2,2,841,Rosette Damage/Early Mow/Late Mow,y,y,y,76,198,1,123,1,143,21,157,35
+2,2,842,Late Mow,n,n,y,76,198,1,,,,,157,35
+2,2,843,Rosette Damage/Late Mow,y,n,y,48,170,1,123,1,,,164,42
+2,2,844,Control,n,n,n,83,205,1,,,,,,
+3,2,861,Late Mow,n,n,y,76,198,1,,,,,157,35
+3,2,862,Rosette Damage,y,n,n,83,205,1,123,1,,,,
+3,2,863,Early Mow,n,y,n,39,161,1,,,143,21,,
+3,2,864,Early Mow/Late Mow,n,y,y,76,198,1,143,21,,,157,35
+4,2,881,Rosette Damage/Early Mow,y,y,n,83,205,1,123,1,143,21,,
+4,2,884,Late Mow,n,n,y,95,217,0,,,,,164,42
+1,3,911,Late Mow,n,n,y,48,170,1,,,,,157,35
+1,3,912,Rosette Damage/Late Mow,y,n,y,48,170,1,123,1,,,157,35
+1,3,913,Control,n,n,n,76,198,1,,,,,,
+1,3,914,Early Mow/Late Mow,n,y,y,76,198,1,,,136,14,150,28
+2,3,931,Rosette Damage/Early Mow,y,y,n,83,205,1,123,1,150,28,,
+2,3,932,Control,n,n,n,83,205,1,,,,,,
+2,3,933,Early Mow/Late Mow,n,y,y,94,216,1,143,21,143,21,157,35
+2,3,934,Early Mow,n,y,n,94,216,1,,,143,21,,
+3,3,951,Rosette Damage/Early Mow/Late Mow,y,y,y,76,198,1,123,1,150,28,164,42
+3,3,952,Control,n,n,n,94,216,1,,,,,,
+3,3,953,Rosette Damage/Late Mow,y,n,y,76,198,1,123,1,,,157,35
+3,3,954,Early Mow/Late Mow,n,y,y,94,216,1,,,143,21,157,35
+4,3,971,Rosette Damage/Early Mow/Late Mow,y,y,y,94,216,1,123,1,136,14,150,28
+4,3,972,Rosette Damage/Early Mow,y,y,n,94,216,1,123,1,150,28,,
+4,3,973,Control,n,n,n,76,198,1,,,,,,
+4,3,974,Late Mow,n,n,y,94,216,1,,,,,157,35
+1,3,1021,Rosette Damage/Early Mow,y,y,n,76,198,1,123,1,143,21,,
+1,3,1022,Early Mow,n,y,n,76,198,1,,,143,21,,
+1,3,1023,Rosette Damage,y,n,n,83,205,1,123,1,,,,
+1,3,1024,Rosette Damage/Early Mow/Late Mow,y,y,y,76,198,1,123,1,150,28,164,42
+2,3,1041,Rosette Damage,y,n,n,76,198,1,123,1,,,,
+2,3,1042,Rosette Damage/Late Mow,y,n,y,48,170,1,123,1,,,164,42
+2,3,1043,Late Mow,n,n,y,39,161,1,,,,,157,35
+2,3,1044,Rosette Damage/Early Mow/Late Mow,y,y,y,83,205,1,123,1,143,21,157,35
+3,3,1061,Late Mow,n,n,y,94,216,1,,,,,150,28
+3,3,1062,Rosette Damage/Early Mow,y,y,n,94,216,1,123,1,143,21,,
+3,3,1063,Early Mow,n,y,n,76,198,1,,,150,28,,
+3,3,1064,Rosette Damage,y,n,n,83,205,1,123,1,,,,
+4,3,1081,Early Mow,n,y,n,94,216,1,,,143,21,,
+4,3,1082,Rosette Damage,y,n,n,83,205,1,123,1,,,,
+4,3,1083,Early Mow/Late Mow,n,y,y,83,205,1,,,143,21,157,35
+4,3,1084,Rosette Damage/Late Mow,y,n,y,39,161,1,123,1,,,157,35
