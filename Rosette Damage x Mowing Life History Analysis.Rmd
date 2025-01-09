@@ -197,7 +197,7 @@ summary(fitMCplus)
 
 #check assumptions by examining residuals
 sim.fitMCplus <- simulateResiduals(fitMCplus)
-plot(sim.fitMCplus) #Visual inspection: this looks fine, dispersion test not concerning
+plot(sim.fitMCplus) #Visual inspection: this looks good
 
 #calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
 emmMCplus <- emmeans(fitMCplus, specs=~RosDam*EarlyMow*LateMow, type="response")
@@ -274,12 +274,12 @@ MaxHt<-mutate(MaxHt, Treatment=case_when(
 MaxHtPlot<-ggplot(MaxHt,aes(y=response, x=Treatment))+
   geom_bar(stat = "identity")+
   theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1))+
-  labs(x="Treatment", y="Maximum Height")+
+  labs(x="Treatment", y="Maximum Height (cm)")+
   geom_text(aes(label = .group, y = asymp.UCL + 10), #+ number specifies how high the cld appears
             position = position_dodge(width = 0.75))+
   #theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
   ylim(0,160)+
-  ggtitle("Maximum Height (cm)")+
+  ggtitle("Maximum Height")+
   geom_errorbar(aes(x=Treatment, ymin=asymp.LCL, ymax=asymp.UCL))
 MaxHtPlot
 ```
