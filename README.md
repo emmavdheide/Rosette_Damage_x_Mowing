@@ -7,8 +7,8 @@ Block: Related to grouping in field, see map for blocks
 SubBlock: Related to grouping in field, see map for sub-blocks (layout is 4 blocks x 3 subblocks for 12 reps)
 RGP: plant id, with row number, group number (plants are planted in groups of 4), and plant number (4 plants per plot)
 Treatment: Treatment name, see manuscript for details
-FloweringDate_doe: UPDATE!!!!!!!!!!!! Day of experiment (from May 2nd) on which flowering first occurred, defined as the presence of at least one anthesed capitulum on a plant that had received all of its assigned damages
-FloweringDate_doy: UPDATE!!!!!!!!!! Day of year (from January 1st) on which flowering first occurred, defined as the presence of at least one anthesed capitulum on a plant that had received all of its assigned damages
+FloweringDate_doe: Day of experiment (from May 2nd) on which flowering first occurred, defined as the presence of at least one anthesed capitulum on a plant that had received all of its assigned damages
+FloweringDate_doy: Day of year (from January 1st) on which flowering first occurred, defined as the presence of at least one anthesed capitulum on a plant that had received all of its assigned damages
 HeightatFlowering: Height of plant in cm when flowering occurred, defined as the presence of at least one anthesed capitulum on a plant that had received all of its assigned damages
 MaxCapitula: the maximum number of capitula, including immature capitula, that were ever present on the plant, determined for each plant after all assigned physical damage had been completed
 MaxCapitulaIncPreTrtSeedProducers: MaxCapitula, plus the number of capitula that produced seeds on each plant before all physical damage was completed (very few capitula matured pre-treatment)
