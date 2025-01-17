@@ -284,3 +284,50 @@ MaxHtPlot<-ggplot(MaxHt,aes(y=response, x=Treatment))+
 MaxHtPlot
 ```
 
+#Number of Stems
+```{r}
+#fit model and summarize
+fitNS<-glmmTMB(NoStemsFinal~RosDam*EarlyMow*LateMow+NoStemsMay2+(1|Block), data=dat, family="poisson")
+summary(fitNS)
+
+
+#check residuals
+sim.fitNS<-simulateResiduals(fitNS)
+plot(sim.fitNS) #looks fine
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmNS <- emmeans(fitNS, specs=~RosDam*EarlyMow*LateMow, type="response")
+emmNS
+
+#get compact letter display for pairwise comparisons
+cld(emmNS, Letters=letters)
+
+#Visualize
+#Put emmeans output into a data frame
+NoStems<-as.data.frame(cld(emmNS, Letters=letters))
+#Add Treatment Name to Data Frame
+NoStems<-mutate(NoStems, Treatment=case_when(
+  RosDam == "n" & EarlyMow == "n" & LateMow == "n" ~ "Control",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "n" ~ "RD",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "n" ~ "RD+EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "n" ~ "EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "y" ~ "EM+LM",
+  RosDam == "n" & EarlyMow == "n" & LateMow == "y" ~ "LM",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "y" ~ "RD+EM+LM",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "y" ~ "RD+LM",
+))
+
+#make a plot
+NoStemsPlot<-ggplot(NoStems,aes(y=rate, x=Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1))+
+  labs(x="Treatment", y="Number of Stems")+
+  geom_text(aes(label = .group, y = asymp.UCL + .5), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ylim(0,5)+
+  ggtitle("Number of Stems at 10 cm, at Experiment Termination")+
+  geom_errorbar(aes(x=Treatment, ymin=asymp.LCL, ymax=asymp.UCL))
+NoStemsPlot
+```
+
