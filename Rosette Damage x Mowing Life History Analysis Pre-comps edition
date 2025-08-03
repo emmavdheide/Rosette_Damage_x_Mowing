@@ -1,0 +1,720 @@
+---
+title: "Rosette Damage x Mowing Data Analysis"
+author: "Emma van der Heide"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Data Analysis for Rosette Damage x Mowing Analysis
+
+```{r load data and packages}
+#set working directory
+setwd("~/Work that isn't on OneDrive/Rosette_Damage_x_Mowing")
+
+#load data
+dat <- read.csv("ManuscriptData1.csv")
+
+#make data into factors
+dat$Block <- as.factor(dat$Block)
+dat$SubBlock <- as.factor(dat$SubBlock)
+dat$Treatment <- as.factor(dat$Treatment)
+dat$RosDam <- as.factor(dat$RosDam)
+dat$EarlyMow <- as.factor(dat$EarlyMow)
+dat$LateMow <- as.factor(dat$LateMow)
+
+#load required packages
+library(lme4)
+library(glmmTMB)
+library(DHARMa)
+library(emmeans)
+library(ggplot2)
+library(dplyr)
+library(multcomp)
+library(tidyverse)
+```
+
+#Flowering Date
+
+Analysis of date of first flowering (days after May 2nd), defined as the date on which each individual plant had its first anthesed capitulum, after that plant had received all physical damage treatments.
+
+```{r}
+#fit model and summarize
+fitFD <- glmmTMB(FloweringDate_doe ~ RosDam*EarlyMow*LateMow + LLLMay2 + (1|Block), data = dat, family = "gaussian")
+summary(fitFD)
+
+#check residuals
+sim.fitFD<-simulateResiduals(fitFD)
+plot(sim.fitFD) #visual inspection of residuals: looks good
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmFD <- emmeans(fitFD, specs=~RosDam*EarlyMow*LateMow, type="response")
+emmFD
+
+#get compact letter display for pairwise comparisons
+cld(emmFD, Letters=letters)
+
+#Visualize output
+#Put emmeans output into a data frame
+FlDate<-as.data.frame(cld(emmFD, Letters=letters))
+#Add Treatment Name to Data Frame
+FlDate<-mutate(FlDate, Treatment=case_when(
+  RosDam == "n" & EarlyMow == "n" & LateMow == "n" ~ "Control",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "n" ~ "RD",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "n" ~ "RD+EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "n" ~ "EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "y" ~ "EM+LM",
+  RosDam == "n" & EarlyMow == "n" & LateMow == "y" ~ "LM",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "y" ~ "RD+EM+LM",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "y" ~ "RD+LM",
+))
+#Scale data smaller for visualization (currently not using this in chart)
+FlDate$mean<-FlDate$emmean/10
+FlDate$LCL<-FlDate$lower.CL/10
+FlDate$UCL<-FlDate$upper.CL/10
+
+#make a plot
+FlDatePlot<-ggplot(FlDate,aes(y=emmean, x=fct_rev(Treatment)))+
+  geom_bar(stat = "identity")+
+  coord_flip()+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1),
+    legend.position="none",
+    plot.title = element_text(size=20), 
+    axis.text.x = element_text(size=15), 
+    axis.text.y = element_text(size=15), 
+    axis.title.x = element_text(size=15),
+    axis.title.y = element_text(size=15))+
+  labs(x="Treatment", y="Flowering Date (Day of Experiment)")+
+    geom_text(aes(label = .group, y = upper.CL + 5, size=10), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ylim(0,90)+
+  ggtitle("Average date of first flowering")+
+  geom_errorbar(aes(x=Treatment, ymin=lower.CL, ymax=upper.CL))
+FlDatePlot
+```
+
+#Height at Flowering
+```{r Height at Flowering}
+#fit model and summarize results
+fitFlHt <- glmmTMB(HeightatFlowering ~ RosDam*EarlyMow*LateMow + LLLMay2+ (1|Block), data = dat, family = nbinom1)
+summary(fitFlHt)
+
+#check residuals
+sim.fitFlHt<-simulateResiduals(fitFlHt)
+plot(sim.fitFlHt) #visual inspection: looks great
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmFlHt <- emmeans(fitFlHt, specs=~RosDam*EarlyMow*LateMow, type="response")
+emmFlHt
+
+#get compact letter display for pairwise comparisons
+cld(emmFlHt, Letters=letters)
+
+#Visualize results
+#Put emmeans output into a data frame
+FlHt<-as.data.frame(cld(emmFlHt, Letters=letters))
+#Add Treatment Name to Data Frame
+FlHt<-mutate(FlHt, Treatment=case_when(
+  RosDam == "n" & EarlyMow == "n" & LateMow == "n" ~ "Control",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "n" ~ "RD",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "n" ~ "RD+EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "n" ~ "EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "y" ~ "EM+LM",
+  RosDam == "n" & EarlyMow == "n" & LateMow == "y" ~ "LM",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "y" ~ "RD+EM+LM",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "y" ~ "RD+LM",
+))
+
+#make a plot
+FlHtPlot<-ggplot(FlHt,aes(y=response, x=Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1),
+    legend.position="none",
+    plot.title = element_text(size=20), 
+    axis.text.x = element_text(size=15), 
+    axis.text.y = element_text(size=15), 
+    axis.title.x = element_text(size=15),
+    axis.title.y = element_text(size=15)      )+
+  labs(x="Treatment", y="Height at Flowering")+
+    geom_text(aes(label = .group, y = asymp.UCL + 10, size=10), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  ylim(0, 150)+
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ggtitle("Height at Flowering")+
+  geom_errorbar(aes(x=Treatment, ymin=asymp.LCL, ymax=asymp.UCL))
+FlHtPlot
+```
+
+#Analyze Maximum Number of Capitula
+
+Maximum number of capitula is the max number of capitula + buds that were ever present on a plant, after that individual plant had had all physeical damage treatments. This is because some capitula drop off/blow away as they senesce, meaning that the final assessment of number of capitula may be inaccurate.
+
+```{r Max. Cap.}
+#fit model and summarize
+fitMC <- glmmTMB(MaxCapitula ~ RosDam*EarlyMow*LateMow + LLLMay2 + (1|Block), data = dat, family = "poisson") #poisson error distribution chosen because this is count data
+summary(fitMC)
+
+#check assumptions by examining residuals
+sim.fitMC <- simulateResiduals(fitMC)
+plot(sim.fitMC) #Visual inspection: this looks fine, dispersion test not concerning
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmMC <- emmeans(fitMC, specs=~RosDam*EarlyMow*LateMow, type="response")
+emmMC
+
+#get compact letter display for pairwise comparisons
+cld(emmMC, Letters=letters)
+
+#Visualize results
+#Put emmeans output into a data frame
+MaxCap<-as.data.frame(cld(emmMC, Letters=letters))
+#Add Treatment Name to Data Frame
+MaxCap<-mutate(MaxCap, Treatment=case_when(
+  RosDam == "n" & EarlyMow == "n" & LateMow == "n" ~ "Control",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "n" ~ "RD",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "n" ~ "RD+EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "n" ~ "EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "y" ~ "EM+LM",
+  RosDam == "n" & EarlyMow == "n" & LateMow == "y" ~ "LM",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "y" ~ "RD+EM+LM",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "y" ~ "RD+LM",
+))
+
+#make a plot
+MaxCapPlot<-ggplot(MaxCap,aes(y=rate, Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1),
+    plot.title = element_text(size=20), 
+    axis.text.x = element_text(size=15), 
+    axis.text.y = element_text(size=15), 
+    axis.title.x = element_text(size=15),
+    axis.title.y = element_text(size=15))+
+  labs(x="Treatment", y="Capitula Production")+
+  geom_text(aes(label = .group, y = asymp.UCL + 1, size = 10), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  ylim(0, 17)+
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ggtitle("Maximum Number of Capitula Present on Plant, Post-Treatment")+
+  geom_errorbar(aes(x=Treatment, ymin=asymp.LCL, ymax=asymp.UCL))
+MaxCapPlot
+```
+
+#Analyze Maximum Number of Capitula, including those capitula that successfully produced seeds before all treatments were complete.
+
+Same as above, but we dissected removed plant matter (some late mowed plants produced capitula before the late mow), and added the number that produced viable seeds (visually determined) to the maximum capitula numbers from the previous fit
+
+```{r Max. Cap.}
+#fit model and summarize
+fitMCplus <- glmmTMB(MaxCapitulaIncPreTrtSeedProducers ~ RosDam*EarlyMow*LateMow + LLLMay2 + (1|Block), data = dat, family = "poisson") #poisson error distribution chosen because this is count data
+summary(fitMCplus)
+
+#check assumptions by examining residuals
+sim.fitMCplus <- simulateResiduals(fitMCplus)
+plot(sim.fitMCplus) #Visual inspection: this looks good
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmMCplus <- emmeans(fitMCplus, specs=~RosDam*EarlyMow*LateMow, type="response")
+emmMCplus
+
+#get compact letter display for pairwise comparisons
+cld(emmMCplus, Letters=letters)
+
+#Visualize results
+#Put emmeans output into a data frame
+MaxCapPlus<-as.data.frame(cld(emmMCplus, Letters=letters))
+#Add Treatment Name to Data Frame
+MaxCapPlus<-mutate(MaxCapPlus, Treatment=case_when(
+  RosDam == "n" & EarlyMow == "n" & LateMow == "n" ~ "Control",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "n" ~ "RD",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "n" ~ "RD+EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "n" ~ "EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "y" ~ "EM+LM",
+  RosDam == "n" & EarlyMow == "n" & LateMow == "y" ~ "LM",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "y" ~ "RD+EM+LM",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "y" ~ "RD+LM",
+))
+
+#make a plot
+MaxCapPlusPlot<-ggplot(MaxCapPlus,aes(y=rate, Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1),
+    plot.title = element_text(size=15), 
+    axis.text.x = element_text(size=15), 
+    axis.text.y = element_text(size=15), 
+    axis.title.x = element_text(size=15),
+    axis.title.y = element_text(size=15)
+    )+
+  labs(x="Treatment", y="Capitula Production")+
+  geom_text(aes(label = .group, y = asymp.UCL + 1, size=10), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  ylim(0, 17)+
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ggtitle("Maximum Number of Capitula Present on Plant, Including Pre-Treatment Seed Producers")+
+  geom_errorbar(aes(x=Treatment, ymin=asymp.LCL, ymax=asymp.UCL))
+MaxCapPlusPlot
+```
+
+#Final Number of Capitula
+```{r}
+#fit model and summarize
+fitFinCap <- glmmTMB(FinalCapitulaTotal ~ RosDam*EarlyMow*LateMow + LLLMay2 + (1|Block), data = dat, family = "nbinom1") #nbinom1 has better residuals than poisson
+summary(fitFinCap)
+
+#check assumptions by examining residuals
+sim.fitFinCap <- simulateResiduals(fitFinCap)
+plot(sim.fitFinCap) #Visual inspection: this looks good
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmFinCap <- emmeans(fitFinCap, specs=~RosDam*EarlyMow*LateMow, type="response")
+emmFinCap
+
+#get compact letter display for pairwise comparisons
+cld(emmFinCap, Letters=letters)
+
+#Visualize results
+#Put emmeans output into a data frame
+FinCap<-as.data.frame(cld(emmFinCap, Letters=letters))
+#Add Treatment Name to Data Frame
+FinCap<-mutate(FinCap, Treatment=case_when(
+  RosDam == "n" & EarlyMow == "n" & LateMow == "n" ~ "Control",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "n" ~ "RD",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "n" ~ "RD+EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "n" ~ "EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "y" ~ "EM+LM",
+  RosDam == "n" & EarlyMow == "n" & LateMow == "y" ~ "LM",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "y" ~ "RD+EM+LM",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "y" ~ "RD+LM",
+))
+
+#make a plot
+FinCapPlot<-ggplot(FinCap,aes(y=response, Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1),
+    legend.position="none",
+    plot.title = element_text(size=20), 
+    axis.text.x = element_text(size=15), 
+    axis.text.y = element_text(size=15), 
+    axis.title.x = element_text(size=15),
+    axis.title.y = element_text(size=15)      )+
+  labs(x="Treatment", y="Capitula Production")+
+  geom_text(aes(label = .group, y = asymp.UCL + 1, size=10), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  ylim(0, 17)+
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ggtitle("Total Number of Capitula Present on Plant at Harvest")+
+  geom_errorbar(aes(x=Treatment, ymin=asymp.LCL, ymax=asymp.UCL))
+FinCapPlot
+```
+
+
+
+#Final Number of Mature Capitula
+
+```{r}
+#fit model and summarize
+fitFinCapMat <- glmmTMB(FinalCapitulaMature ~ RosDam*EarlyMow*LateMow + LLLMay2 + (1|Block), data = dat, family = "poisson") 
+summary(fitFinCapMat)
+
+#check assumptions by examining residuals
+sim.fitFinCapMat <- simulateResiduals(fitFinCapMat)
+plot(sim.fitFinCapMat) #Visual inspection: this looks good
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmFinCapMat <- emmeans(fitFinCapMat, specs=~RosDam*EarlyMow*LateMow, type="response")
+emmFinCapMat
+
+#get compact letter display for pairwise comparisons
+cld(emmFinCapMat, Letters=letters)
+
+#Visualize results
+#Put emmeans output into a data frame
+FinCapMat<-as.data.frame(cld(emmFinCapMat, Letters=letters))
+#Add Treatment Name to Data Frame
+FinCapMat<-mutate(FinCapMat, Treatment=case_when(
+  RosDam == "n" & EarlyMow == "n" & LateMow == "n" ~ "Control",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "n" ~ "RD",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "n" ~ "RD+EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "n" ~ "EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "y" ~ "EM+LM",
+  RosDam == "n" & EarlyMow == "n" & LateMow == "y" ~ "LM",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "y" ~ "RD+EM+LM",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "y" ~ "RD+LM",
+))
+
+#make a plot
+FinCapMatPlot<-ggplot(FinCapMat,aes(y=rate, Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1),
+    legend.position="none",
+    plot.title = element_text(size=20), 
+    axis.text.x = element_text(size=15), 
+    axis.text.y = element_text(size=15), 
+    axis.title.x = element_text(size=15),
+    axis.title.y = element_text(size=15)      )+
+  labs(x="Treatment", y="Capitula Production")+
+  geom_text(aes(label = .group, y = asymp.UCL + 1), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  ylim(0, 17)+
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ggtitle("Number of Mature Capitula Present on Plant at Harvest")+
+  geom_errorbar(aes(x=Treatment, ymin=asymp.LCL, ymax=asymp.UCL))
+FinCapMatPlot
+```
+
+#Maximum Mature Capitula 
+Maximum capitula (including pre-treatment seed producers) minus capitula that were immature at harvest
+
+```{r}
+#fit model and summarize
+fitMaxCapMat <- glmmTMB(MaxCapMature ~ RosDam*EarlyMow*LateMow + LLLMay2 + (1|Block), data = dat, family = "poisson") 
+summary(fitMaxCapMat)
+
+#check assumptions by examining residuals
+sim.fitMaxCapMat <- simulateResiduals(fitMaxCapMat)
+plot(sim.fitMaxCapMat) #Visual inspection: this looks good
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmMaxCapMat <- emmeans(fitMaxCapMat, specs=pairwise~RosDam*EarlyMow*LateMow, type="response")
+emmMaxCapMat
+
+#get compact letter display for pairwise comparisons
+cld(emmMaxCapMat, Letters=letters)
+
+#Visualize results
+#Put emmeans output into a data frame
+MaxCapMat<-as.data.frame(cld(emmMaxCapMat, Letters=letters))
+#Add Treatment Name to Data Frame
+MaxCapMat<-mutate(MaxCapMat, Treatment=case_when(
+  RosDam == "n" & EarlyMow == "n" & LateMow == "n" ~ "Control",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "n" ~ "RD",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "n" ~ "RD+EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "n" ~ "EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "y" ~ "EM+LM",
+  RosDam == "n" & EarlyMow == "n" & LateMow == "y" ~ "LM",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "y" ~ "RD+EM+LM",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "y" ~ "RD+LM",
+))
+
+#make a plot
+MaxCapMatPlot<-ggplot(MaxCapMat,aes(y=rate, Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1),
+    legend.position = "none",
+    plot.title = element_text(size=20), 
+    axis.text.x = element_text(size=15), 
+    axis.text.y = element_text(size=15), 
+    axis.title.x = element_text(size=15),
+    axis.title.y = element_text(size=15))+
+  labs(x="Treatment", y="Capitulum Production")+
+  geom_text(aes(label = .group, y = asymp.UCL + 1, size=10), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  ylim(0, 17)+
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ggtitle("Capitulum Production")+
+  geom_errorbar(aes(x=Treatment, ymin=asymp.LCL, ymax=asymp.UCL))
+MaxCapMatPlot
+```
+
+#Maximum Height
+
+This is maximum post-treatment height (after all physical damages had been applied)
+
+```{r}
+#fit model and summarize
+fitMaxHt<-glmmTMB(MaxHeight~RosDam*EarlyMow*LateMow+LLLMay2+(1|Block), data=dat, family="nbinom1")
+summary(fitMaxHt)
+
+#check residuals
+sim.fitMaxHt<-simulateResiduals(fitMaxHt)
+plot(sim.fitMaxHt) #looks fine
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmMaxHt <- emmeans(fitMaxHt, specs=~RosDam*EarlyMow*LateMow, type="response")
+emmMaxHt
+
+#get compact letter display for pairwise comparisons
+cld(emmMaxHt, Letters=letters)
+
+#Visualize
+#Put emmeans output into a data frame
+MaxHt<-as.data.frame(cld(emmMaxHt, Letters=letters))
+#Add Treatment Name to Data Frame
+MaxHt<-mutate(MaxHt, Treatment=case_when(
+  RosDam == "n" & EarlyMow == "n" & LateMow == "n" ~ "Control",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "n" ~ "RD",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "n" ~ "RD+EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "n" ~ "EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "y" ~ "EM+LM",
+  RosDam == "n" & EarlyMow == "n" & LateMow == "y" ~ "LM",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "y" ~ "RD+EM+LM",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "y" ~ "RD+LM",
+))
+
+#make a plot
+MaxHtPlot<-ggplot(MaxHt,aes(y=response, x=Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1),
+    legend.position="none",
+    plot.title = element_text(size=20), 
+    axis.text.x = element_text(size=15), 
+    axis.text.y = element_text(size=15), 
+    axis.title.x = element_text(size=15),
+    axis.title.y = element_text(size=15)      
+    )+
+  labs(x="Treatment", y="Maximum Height (cm)")+
+  geom_text(aes(label = .group, y = asymp.UCL + 10, size=10), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ylim(0,160)+
+  ggtitle("Maximum Height")+
+  geom_errorbar(aes(x=Treatment, ymin=asymp.LCL, ymax=asymp.UCL))
+MaxHtPlot
+```
+
+#Number of Stems
+```{r}
+#fit model and summarize
+fitNS<-glmmTMB(NoStemsFinal~RosDam*EarlyMow*LateMow+NoStemsMay2+(1|Block), data=dat, family="poisson")
+summary(fitNS)
+
+
+#check residuals
+sim.fitNS<-simulateResiduals(fitNS)
+plot(sim.fitNS) #looks fine
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmNS <- emmeans(fitNS, specs=~RosDam*EarlyMow*LateMow, type="response")
+emmNS
+
+#get compact letter display for pairwise comparisons
+cld(emmNS, Letters=letters)
+
+#Visualize
+#Put emmeans output into a data frame
+NoStems<-as.data.frame(cld(emmNS, Letters=letters))
+#Add Treatment Name to Data Frame
+NoStems<-mutate(NoStems, Treatment=case_when(
+  RosDam == "n" & EarlyMow == "n" & LateMow == "n" ~ "Control",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "n" ~ "RD",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "n" ~ "RD+EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "n" ~ "EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "y" ~ "EM+LM",
+  RosDam == "n" & EarlyMow == "n" & LateMow == "y" ~ "LM",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "y" ~ "RD+EM+LM",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "y" ~ "RD+LM",
+))
+
+#make a plot
+NoStemsPlot<-ggplot(NoStems,aes(y=rate, x=Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1),
+    legend.position="none",
+    plot.title = element_text(size=20), 
+    axis.text.x = element_text(size=15), 
+    axis.text.y = element_text(size=15), 
+    axis.title.x = element_text(size=15),
+    axis.title.y = element_text(size=15))+
+  labs(x="Treatment", y="Number of Stems")+
+  geom_text(aes(label = .group, y = asymp.UCL + .5, size=10), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ylim(0,5)+
+  ggtitle("Number of Stems at 10 cm, at Experiment Termination")+
+  geom_errorbar(aes(x=Treatment, ymin=asymp.LCL, ymax=asymp.UCL))
+NoStemsPlot
+```
+
+#Dry aboveground biomass
+
+```{r}
+#fit model and summarize
+fitBiomass<-glmmTMB(Biomass~RosDam*EarlyMow*LateMow+LLLMay2+(1|Block), data=dat, family=Gamma(link = "log"))
+summary(fitBiomass)
+
+#correct family? maybe Gamma with log link
+
+#check residuals
+sim.fitBiomass<-simulateResiduals(fitBiomass)
+plot(sim.fitBiomass) #looks okay, although dispersion test is a little bit wonky
+
+#calculate treatment means (estimated marginal means) and pairwise comparisons by treatment
+emmBiomass <- emmeans(fitBiomass, specs=~RosDam*EarlyMow*LateMow, type="response")
+emmBiomass
+
+#get compact letter display for pairwise comparisons
+cld(emmBiomass, Letters=letters)
+
+#Visualize
+#Put emmeans output into a data frame
+Biomass<-as.data.frame(cld(emmBiomass, Letters=letters))
+#Add Treatment Name to Data Frame
+Biomass<-mutate(Biomass, Treatment=case_when(
+  RosDam == "n" & EarlyMow == "n" & LateMow == "n" ~ "Control",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "n" ~ "RD",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "n" ~ "RD+EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "n" ~ "EM",
+  RosDam == "n" & EarlyMow == "y" & LateMow == "y" ~ "EM+LM",
+  RosDam == "n" & EarlyMow == "n" & LateMow == "y" ~ "LM",
+  RosDam == "y" & EarlyMow == "y" & LateMow == "y" ~ "RD+EM+LM",
+  RosDam == "y" & EarlyMow == "n" & LateMow == "y" ~ "RD+LM",
+))
+
+#make a plot
+BiomassPlot<-ggplot(Biomass,aes(y=response, x=Treatment))+
+  geom_bar(stat = "identity")+
+  theme(panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1),
+    legend.position="none",
+    plot.title = element_text(size=20), 
+    axis.text.x = element_text(size=15), 
+    axis.text.y = element_text(size=15), 
+    axis.title.x = element_text(size=15),
+    axis.title.y = element_text(size=15))+
+  labs(x="Treatment", y="Biomass (g)")+
+  geom_text(aes(label = .group, y = asymp.UCL + 10, size = 10), #+ number specifies how high the cld appears
+            position = position_dodge(width = 0.75))+
+  #theme(axis.text.x = element_text(angle = 45, hjust = 1))+ #angle text 45 degrees
+  ylim(0,130)+
+  ggtitle("Final Dry Aboveground Biomass (g)")+
+  geom_errorbar(aes(x=Treatment, ymin=asymp.LCL, ymax=asymp.UCL))
+BiomassPlot
+```
+
+#Capitulum Size
+```{r}
+#MAY NEED TO REMOVE NAS FROM THIS DATA FIRST
+
+#load data
+CapSizeDat<-read.csv("Capitulum Diameter Data.csv")
+
+#make factors
+CapSizeDat$RGP<-as.factor(CapSizeDat$RGP)
+CapSizeDat$Capitulum<-as.factor(CapSizeDat$Capitulum)
+CapSizeDat$Treatment<-as.factor(CapSizeDat$Treatment)
+
+CapSizeDat<-mutate(CapSizeDat, Trt=case_when(
+  Treatment == "Control" ~ "Control",
+  Treatment == "Rosette Damage" ~ "RD",
+  Treatment == "Rosette Damage/Early Mow" ~ "RD+EM",
+  Treatment == "Early Mow" ~ "EM",
+  Treatment == "Early Mow/Late Mow" ~ "EM+LM",
+  Treatment == "Late Mow" ~ "LM",
+  Treatment == "Rosette Damage/Early Mow/Late Mow" ~ "RD+EM+LM",
+  Treatment == "Rosette Damage/Late Mow" ~ "RD+LM",
+))
+
+#Make plot with size distribution by treatment
+CapDistPlot<-
+  ggplot(CapSizeDat, aes(x = Trt, y = AvgCapDia, fill = Trt))+
+  geom_boxplot() +
+    theme(
+    legend.position="none",
+    plot.title = element_text(size=20), 
+    axis.text.x = element_text(size=15), 
+    axis.text.y = element_text(size=15), 
+    axis.title.x = element_text(size=15),
+    axis.title.y = element_text(size=15)
+  ) +
+  labs(title = "Distribution of Capitulum Sizes by Treatment", x = "Treatment", y = "Average Capitulum Size (cm)")
+CapDistPlot
+
+#K-S Tests
+#break data into data frames by treatment
+CapDistControl<-subset(CapSizeDat, Treatment=="Control")
+CapDistEM<-subset(CapSizeDat, Treatment=="Early Mow")
+CapDistEMLM<-subset(CapSizeDat, Treatment=="Early Mow/Late Mow")
+CapDistLM<-subset(CapSizeDat, Treatment=="Late Mow")
+CapDistRD<-subset(CapSizeDat, Treatment=="Rosette Damage")
+CapDistRDEM<-subset(CapSizeDat, Treatment=="Rosette Damage/Early Mow")
+CapDistRDEMLM<-subset(CapSizeDat, Treatment=="Rosette Damage/Early Mow/Late Mow")
+CapDistRDLM<-subset(CapSizeDat, Treatment=="Rosette Damage/Late Mow")
+
+#Control vs. EM
+ks.test(CapDistControl$AvgCapDia, CapDistEM$AvgCapDia, alternative="two.sided")
+#EM has smaller dist than control if we do alternative="less"
+
+#Control vs. EM/LM
+ks.test(CapDistControl$AvgCapDia, CapDistEMLM$AvgCapDia, alternative="two.sided")
+#EM/LM has smaller dist than control
+
+#Control vs. LM
+ks.test(CapDistControl$AvgCapDia, CapDistLM$AvgCapDia, alternative="two.sided")
+#LM has smaller dist than control
+
+#Control vs. RD
+ks.test(CapDistControl$AvgCapDia, CapDistRD$AvgCapDia, alternative="two.sided")
+#RD has smaller dist than control, but NEED TO FIGURE OUT THIS ERROR!!!!!
+#if bonferroni correction, 0.05/7 = 0.007142857 for significance
+
+#Control vs. RD/EM
+ks.test(CapDistControl$AvgCapDia, CapDistRDEM$AvgCapDia, alternative="two.sided")
+#RD/EM has smaller dist than control
+
+#Control vs. RD/EM/LM
+ks.test(CapDistControl$AvgCapDia, CapDistRDEMLM$AvgCapDia, alternative="two.sided")
+#RD/EM/LM has smaller dist than control
+
+#Control vs. RD/LM
+ks.test(CapDistControl$AvgCapDia, CapDistRDLM$AvgCapDia, alternative="two.sided")
+#RD/LM has smaller dist than control
+
+#EM vs. RD/EM
+ks.test(CapDistEM$AvgCapDia, CapDistRDEM$AvgCapDia, alternative="two.sided")
+
+#LM vs. RD/LM
+ks.test(CapDistLM$AvgCapDia, CapDistRDLM$AvgCapDia, alternative="two.sided")
+
+#EM/LM vs. RD/EM/LM
+ks.test(CapDistEMLM$AvgCapDia, CapDistRDEMLM$AvgCapDia, alternative = "two.sided")
+
+
+
+#After talking with Trevor, it seems like multiple K-S tests with a Bonferroni Correction isn't wrong per se, but, since my data appears to be roughly normally distributed, a linear model might be better
+hist(CapSizeDat$AvgCapDia)
+
+fitCapSize<-glmmTMB(sqrt(AvgCapDia)~Trt+(1|RGP), data=CapSizeDat)
+summary(fitCapSize)
+
+#check residuals
+sim.fitCapSize<-simulateResiduals(fitCapSize)
+plot(sim.fitCapSize)
+  #normality looks great, homogeneity of variances does not
+  #I tried log-transforming the response variable but that didn't fix the variance issue and kinda screwed with the dispersion
+  #The same is true for 1/AvgCapDia and sqrt(AvgCapDia)
+
+#This is significant - variances are not homogeneous
+leveneTest(AvgCapDia~Trt, data=CapSizeDat)
+
+#compare variance of LM to RDLM, reveals that I have at least 4x higher variance at the high end compared to the low end - linear models are not robust to this level of heteroscedasticity
+var(CapDistLM$AvgCapDia, na.rm=T)
+var(CapDistRDLM$AvgCapDia, na.rm=T)
+
+#I could do a one way test of the means (not thinking about variance)
+oneway.test(AvgCapDia~Trt, data=CapSizeDat, var.equal = FALSE)
+
+#However, because the variance is so resistant to being homoscedastic, even in the face of transformation, I think my best option might be a (non-parametric) Kruskal-Wallis test
+kruskal.test(AvgCapDia~Trt, data=CapSizeDat)
+  #This tells me that at least one of my groups is different
+#I can do multiple comparisons with a pairwise wilcoxon rank sum test, which calculates pairwise comparisons between group levels with corrections for multiple comparisons - however, it seems that this is not the most appropriate post-hoc test following a Kruskal-Wallis test
+pairwise.wilcox.test(CapSizeDat$AvgCapDia, CapSizeDat$Trt, p.adjust.method = "bonferroni")
+#Alternatively, I can use Dunn's test
+library(FSA)
+dunnTest(AvgCapDia~Trt, data=CapSizeDat, method="bonferroni")
+  #qualitatively the same results
+
+
+#This does not work
+cld(dunnTest(AvgCapDia~Trt, data=CapSizeDat, method="bonferroni"))
+
+cld<-c("a", "b", "b", "b", "a", "b", "b", "b")
+clddat<-as.data.frame(cld)
+clddat$Trt<-c("Control", "EM", "EM+LM", "LM", "RD", "RD+EM", "RD+EM+LM", "RD+LM")
+
+#Add letters from the Wilcox test to this plot
+CapDistPlot+
+  geom_text(data=clddat, aes(x=Trt, y=4, label = cld), size = 8, color = "black") #add this back in once letters are figured out
+```
+

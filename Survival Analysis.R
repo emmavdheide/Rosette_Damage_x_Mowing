@@ -51,6 +51,23 @@ ggplot(aes(x=TreatmentAbb, y=TimeOfDeath_doe, fill=TreatmentAbb)) +
   #theme(axis.text.x = element_text(angle = 45, hjust = 1)) #angle text 45 degrees
 ToDPlot
 
+ToDPlot<-survdat %>%
+  ggplot(aes(x=TreatmentAbb, y=TimeOfDeath_doe, fill=TreatmentAbb)) +
+  geom_boxplot_pattern(aes(fill=Treatment, pattern=Treatment), pattern_fill = "black",
+                       pattern_density = 0.05,
+                       pattern_spacing = 0.05,
+                       pattern_angle = 45,
+                       pattern_key_scale_factor = 0.6) +
+  scale_pattern_manual(values=c("none","none","none","none", "stripe","stripe","stripe","stripe"))+
+  scale_fill_manual(values = c("gray51", "lightskyblue2", "deepskyblue3","darkolivegreen3", "gray51", "lightskyblue2", "deepskyblue3","darkolivegreen3"))+
+  theme(
+    legend.position="none",panel.background = element_blank(), panel.border = element_rect(color = "black",fill=NA, size=1), axis.title.y = element_text(size = 25), axis.text = element_text(size = 20), plot.title = element_text(size=30)) +
+  ggtitle("Time of Death") +
+  xlab("Treatment")+
+  ylab("Time of Death (day of experiment)")#+
+#theme(axis.text.x = element_text(angle = 45, hjust = 1)) #angle text 45 degrees
+ToDPlot
+
 #look at the first 10 observations to make sure this is coded correctly
 Surv(survdat$TimeOfDeath_doe, survdat$Status)[1:10]
 #so the first plant survived 94 days, 2nd 83 days, etc.
